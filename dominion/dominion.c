@@ -647,26 +647,28 @@ int getCost(int cardNumber)
  * Five Refactored Card Functions
  *********************************************************/
 // REFACTOR - Adventurer effect pulled out as its own function
-int adventurerEffect(int* drawntreasure, struct gameState* state, int const currentPlayer, int* cardDrawn,
-        int* temphand, int* z)
+// DEBUG - changed int* z to int z (nothing happens?)
+//       - changed int* cardDrawn to int cardDrawn
+int adventurerEffect(int* drawntreasure, struct gameState* state, int const currentPlayer, int cardDrawn,
+        int* temphand, int z)
 {
     while(*drawntreasure<2){
         if (state->deckCount[currentPlayer] <1){//if the deck is empty we need to shuffle discard and add to deck
           shuffle(currentPlayer, state);
         }
         drawCard(currentPlayer, state);
-        *cardDrawn = state->hand[currentPlayer][state->handCount[currentPlayer]-1];//top card of hand is most recently drawn card.
-        if (*cardDrawn == copper || *cardDrawn == silver || *cardDrawn == gold)
+        cardDrawn = state->hand[currentPlayer][state->handCount[currentPlayer]-1];//top card of hand is most recently drawn card.
+        if (cardDrawn == copper || cardDrawn == silver || cardDrawn == gold)
           (*drawntreasure)++;
         else{
-          temphand[*z]=*cardDrawn;
+          temphand[z]=cardDrawn;
           state->handCount[currentPlayer]--; //this should just remove the top card (the most recently drawn one).
-          (*z)++;
+          z++;
         }
     }
-    while(*z-1>=0){
-        state->discard[currentPlayer][state->discardCount[currentPlayer]++]=temphand[*z-1]; // discard all cards in play that have been drawn
-        *z=*z-1;
+    while(z-1>=0){
+        state->discard[currentPlayer][state->discardCount[currentPlayer]++]=temphand[z-1]; // discard all cards in play that have been drawn
+        z=z-1;
     }
     return 0;
 }
@@ -676,7 +678,7 @@ int smithyEffect(int const currentPlayer, struct gameState* state, int const han
 {
     //+3 Cards
     int i;
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i <= 3; i++) { // DEBUG << should be '<'
 	  drawCard(currentPlayer, state);
 	}
 			
@@ -725,11 +727,12 @@ int villageEffect(int const currentPlayer, struct gameState* state, int const ha
 // REFACTOR - Great hall effect pulled out as its own function
 int greatHallEffect(int const currentPlayer, struct gameState* state, int const handPos)
 {
-    //+1 Card
-    drawCard(currentPlayer, state);
-        
+    // DEBUG - switched order of effects
     //+1 Actions
     state->numActions++;
+        
+    //+1 Card
+    drawCard(currentPlayer, state);
         
     //discard card from hand
     discardCard(handPos, currentPlayer, state, 0);
@@ -763,12 +766,12 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
         // REFACTORED - 1
         // int adventurerEffect(int* drawntreasure, struct gameState* state, int const currentPlayer, int* cardDrawn,
         //                      int* temphand, int* z)
-        return adventurerEffect(&drawntreasure, state, currentPlayer, &cardDrawn, temphand, &z);
+        return adventurerEffect(&drawntreasure, state, currentPlayer, cardDrawn, temphand, z);
 
     case council_room:
         // REFACTORED - 2
         // int councilRoomEffect(int const currentPlayer, struct gameState* state, int const handPos) {
-        return councilRoomEffect(currentPlayer, state, handPos);
+        councilRoomEffect(currentPlayer, state, handPos);
 			
     case feast:
       //gain card with cost up to 5
