@@ -7,7 +7,7 @@
 
 #define NUM_TESTS 1000
 
-int checkSmithy(struct gameState* game, int n) {
+int checkVillage(struct gameState* game, int n) {
 
     //int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState *state, int handPos, int *bonus)
     //
@@ -26,23 +26,24 @@ int checkSmithy(struct gameState* game, int n) {
     int oHandCount = game->handCount[whoseTurn]; /* Should increase by 3 */
     int oDeckCount = game->deckCount[whoseTurn]; /* Unless this is less than 3 */
     /* int oDiscardCount = game->discardCount[whoseTurn]; */
+    int oActions = game->numActions;
 
     int failuresDetected = 0;
 
-    cardEffect(smithy, 0, 0, 0, game, 0, 0);
+    cardEffect(village, 0, 0, 0, game, 0, 0);
 
     /* The Oracle */
     printf("Test #%d: ", n);
-    /* oDeckCount >= 3, smithy should draw 3 cards */
-    if (oDeckCount >= 3) {
-        if (oHandCount - 1 + 3 == game->handCount[whoseTurn])
-            printf("handCount - 1 + 3 - PASS, ");
+    /* If there is at least one card, Village draws one after discarding */
+    if (oDeckCount >= 1) {
+        if (oHandCount - 1 + 1 == game->handCount[whoseTurn]) /* should be the same */
+            printf("handCount - 1 + 1 - PASS, ");
         else {
-            printf("handCount - 1 + 3 - FAIL (orig %d after %d), ",
+            printf("handCount - 1 + 1 - FAIL (orig %d after %d), ",
                     oHandCount, game->handCount[whoseTurn]);
             failuresDetected = 1;
         }
-    } else {
+    } else { /* No cards to draw after discarding */
         if (oHandCount - 1 + oDeckCount == game->handCount[whoseTurn])
             printf("handCount - 1 + deckCount (%d) - PASS, ", oDeckCount);
         else {
@@ -51,6 +52,12 @@ int checkSmithy(struct gameState* game, int n) {
             failuresDetected = 1;
         }
     }
+    /* Village should add two actions to gameState */
+    if (oActions + 2 == game->numActions)
+        printf("numActions + 2 - PASS");
+    else
+        printf("numActions + 2 - FAIL (orig %d after %d)", oActions, game->numActions);
+
     printf("\n"); /* New line after test results */
     return failuresDetected;
 }
@@ -86,7 +93,7 @@ int main() {
         /* Avoiding seg faults with the code below! */
         G.whoseTurn = p;
         G.playedCardCount = p = floor(Random() * 256);
-        failuresDetected += checkSmithy(&G, n);
+        failuresDetected += checkVillage(&G, n);
     }
 
     if (failuresDetected) printf("FAILURE - %d TESTS FAILED\n", failuresDetected);
@@ -94,3 +101,4 @@ int main() {
 
     return 0;
 }
+
