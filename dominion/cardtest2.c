@@ -1,60 +1,103 @@
 #include "dominion.h"
 #include "dominion_helpers.h"
 #include "rngs.h"
+#include "math.h"
 #include <stdio.h>
 #include <string.h>
 
+#define NUM_TESTS 1000
+
+int checkVillage(struct gameState* game, int n) {
+
+    //int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState *state, int handPos, int *bonus)
+    //
+    /* No choices, no bonus for smithy */
+    /* handPos = 0 will break gameState, but that's OK */
+    /* gameState is only checked once before regenerating in main() */
+
+    /* Ignoring playCard responsibilities here: */
+    /* Not testing numAction decrementing */
+    /* Not testing phase check - ignore and play action anyway */
+
+    /* gameState variables to save and check */
+    int whoseTurn = game->whoseTurn;
+    /* int oNumBuys = game->numBuys; */
+    int oHandCount = game->handCount[whoseTurn]; /* Should increase by 3 */
+    int oDeckCount = game->deckCount[whoseTurn]; /* Unless this is less than 3 */
+    /* int oDiscardCount = game->discardCount[whoseTurn]; */
+    int oActions = game->numActions;
+
+    int failuresDetected = 0;
+
+    cardEffect(village, 0, 0, 0, game, 0, 0);
+
+    /* The Oracle */
+    printf("Test #%d: ", n);
+    /* If there is at least one card, Village draws one after discarding */
+    if (oDeckCount >= 1) {
+        if (oHandCount - 1 + 1 == game->handCount[whoseTurn]) /* should be the same */
+            printf("handCount - 1 + 1 - PASS, ");
+        else {
+            printf("handCount - 1 + 1 - FAIL (orig %d after %d), ",
+                    oHandCount, game->handCount[whoseTurn]);
+            failuresDetected = 1;
+        }
+    } else { /* No cards to draw after discarding */
+        if (oHandCount - 1 + oDeckCount == game->handCount[whoseTurn])
+            printf("handCount - 1 + deckCount (%d) - PASS, ", oDeckCount);
+        else {
+            printf("handCount - 1 + deckCount (%d) - FAIL (orig %d after %d), ", oDeckCount,
+                    oHandCount, game->handCount[whoseTurn]);
+            failuresDetected = 1;
+        }
+    }
+    /* Village should add two actions to gameState */
+    if (oActions + 2 == game->numActions)
+        printf("numActions + 2 - PASS");
+    else
+        printf("numActions + 2 - FAIL (orig %d after %d)", oActions, game->numActions);
+
+    printf("\n"); /* New line after test results */
+    return failuresDetected;
+}
+
 int main() {
-
     /* Initialize basic game parameters */
-    int seed = 1989;
-    int numPlayers = 2;
-    int kingdomCards[10] = {adventurer,
-                            council_room,
-                            feast,
-                            gardens,
-                            mine,
-                            remodel,
-                            smithy,
-                            village,
-                            baron,
-                            great_hall};
-
-    struct gameState game;
-    int maxBonus = 10; /* No idea what this does */
-
-    /* These variables not used in this test */
+    int i, n, p;
     /*
-    int maxHandCount = 5;
-    int i, p, r, handCount, bonus;
-    */
+    int k[10] = {   adventurer,
+                    council_room,
+                    feast,
+                    gardens,
+                    mine,
+                    remodel,
+                    smithy,
+                    village,
+                    baron,
+                    great_hall};
+                    */
 
-    /* Initialize test game */
-    initializeGame(numPlayers, kingdomCards, seed, &game);
-    struct gameState* state = &game;
+    int failuresDetected = 0;
 
-    /* Test smithy card */
-    int origHandCount = state->handCount[whoseTurn(state)];
-    int origActions = state->numActions;
-    cardEffect(village, 0, 0, 0, state, 0, &maxBonus); /* handPos = 0 will break state */
+    struct gameState G;
+    
+    for (n = 0; n < NUM_TESTS; n++) {
+        for (i = 0; i < sizeof(struct gameState); i++) {
+            ((char*)&G)[i] = floor(Random() * 256);
+        }
+        p = floor(Random() * 4);
+        G.deckCount[p] = floor(Random() * MAX_DECK);
+        G.discardCount[p] = floor(Random() * MAX_DECK);
+        G.handCount[p] = floor(Random() * MAX_HAND);
+        /* Avoiding seg faults with the code below! */
+        G.whoseTurn = p;
+        G.playedCardCount = p = floor(Random() * 256);
+        failuresDetected += checkVillage(&G, n);
+    }
 
-    /* Was a card drawn and added to the player's hand? */
-    /* should draw one and discard one card for a net gain of zero cards */
-    if (origHandCount == state->handCount[whoseTurn(state)])
-        printf("Village: PASS - Expected number of extra cards\n");
-    else
-        printf("Village: FAIL - Unexpected number of extra cards\n");
-
-    /* Did the player get two more actions? */
-    if (origActions + 2 == state->numActions)
-        printf("Village: PASS - Expected number of actions\n");
-    else
-        printf("Village: FAIL - Unexpected number of actions\n");
+    if (failuresDetected) printf("FAILURE - %d TESTS FAILED\n", failuresDetected);
+    else printf("OK - ALL TESTS PASSED\n");
 
     return 0;
-
-    /* Append new line to output */
-    printf("\n");
-
 }
 

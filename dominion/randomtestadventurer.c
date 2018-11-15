@@ -4,13 +4,17 @@
 #include "math.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+#define MIN_DECK 0 /* MAX_DECK defined in dominion.h */
 
 #define NUM_TESTS 1000
 
 int checkCardIsTreasure(struct gameState* game, int turn, int pos) {
+
     return (game->hand[turn][pos] == copper ||
-            game->hand[turn][pos] == silver ||
-            game->hand[turn][pos] == gold);
+           game->hand[turn][pos] == silver ||
+           game->hand[turn][pos] == gold);
 }
 
 int checkAdventurer(struct gameState* game, int n) {
@@ -46,8 +50,10 @@ int checkAdventurer(struct gameState* game, int n) {
     /* No more than two cards added, adv. card is discarded */
     if (oHandCount + 2 - 1 >= aHandCount)
         printf("At most two cards added - PASS, ");
-    else
+    else {
         printf("More than two cards added (before: %d, after %d) - FAIL, ", oHandCount, aHandCount);
+        failuresDetected++;
+    }
     /* Total cards in play conserved */
     if ((oHandCount + oDeckCount + oDiscardCount) ==
             (aHandCount + aDeckCount + aDiscardCount))
@@ -57,29 +63,40 @@ int checkAdventurer(struct gameState* game, int n) {
         printf("(oHand: %d, oDeck: %d, oDisc: %d, aHand: %d, aDeck: %d, aDisc: %d) - FAIL, ",
                 oHandCount, oDeckCount, oDiscardCount,
                 aHandCount, aDeckCount, aDiscardCount);
+        failuresDetected++;
     }
     /* Drawn cards added to hand are, in fact, treasure cards */
     int pos = aHandCount - 1;
     /* 2 cards were drawn, both are treasure */
-    if (oHandCount - 1 + 2 == aHandCount) {
+    /* PROGRAM IS NOT DISCARDING ADVENTURER CARD? */
+    /* if (oHandCount - 1 + 2 == aHandCount) { */
+    if (oHandCount + 2 == aHandCount) {
         if (checkCardIsTreasure(game, whoseTurn, pos)) { /* nth card is treasure */
             if (checkCardIsTreasure(game, whoseTurn, pos - 1)) /* n - 1 card is treasure */
                 printf("2d drawn cards are treasure - PASS");
-            else
+            else {
                 printf("2d last card is treasure - FAIL");
-        } else
+                failuresDetected++;
+            }
+        } else {
             printf("2d card is not treasure - FAIL");
+            failuresDetected++;
+        }
     /* 1 card was drawn, it is treasure */
     } else if (oHandCount - 1 + 1 == aHandCount) {
         if (checkCardIsTreasure(game, whoseTurn, pos)) /* nth card is treasure */
             printf("1d and it is treasure - PASS");
-        else
+        else {
             printf("1d and it is not treasure - FAIL");
+            failuresDetected++;
+        }
     /* No card drawn */
     } else if (oHandCount - 1 == aHandCount)
         printf("0d no cards drawn - PASS");
-    else
+    else {
         printf("Something went wrong - FAIL");
+        failuresDetected++;
+    }
     
     printf("\n"); /* New line after test results */
     return failuresDetected;
@@ -87,6 +104,7 @@ int checkAdventurer(struct gameState* game, int n) {
 
 int main() {
     /* Initialize basic game parameters */
+    srand(1988);
     int i, n, p;
     /*
     int k[10] = {   adventurer,
@@ -110,12 +128,26 @@ int main() {
             ((char*)&G)[i] = floor(Random() * 256);
         }
         p = floor(Random() * 4);
-        G.deckCount[p] = floor(Random() * MAX_DECK);
-        G.discardCount[p] = floor(Random() * MAX_DECK);
-        G.handCount[p] = floor(Random() * MAX_HAND);
+        /* Segfaults
+        G.deckCount[p] = abs(floor(Random() * MAX_DECK));
+        G.discardCount[p] = abs(floor(Random() * MAX_DECK));
+        G.handCount[p] = abs(floor(Random() * MAX_HAND));
+        */
         /* Avoiding seg faults with the code below! */
+        G.deckCount[p] = (rand() % MAX_DECK + MIN_DECK);
+        G.discardCount[p] = (rand() % MAX_DECK + MIN_DECK);
+        G.handCount[p] = (rand() % MAX_HAND + MIN_DECK);
+
+        /* Real cards? */
+        for (i = 0; i < G.discardCount[p]; i++)
+            G.hand[p][i] = (rand() % 15); /* Need to limit range of ints */
+        for (i = 0; i < G.handCount[p]; i++)
+            G.discard[p][i] = (rand() % 15); /* Need to limit range of ints */
+        for (i = 0; i < G.deckCount[p]; i++)
+            G.deck[p][i] = (rand() % 15); /* Need to limit range of ints */
+
         G.whoseTurn = p;
-        G.playedCardCount = p = floor(Random() * 256);
+        G.playedCardCount = floor(Random() * 256);
         failuresDetected += checkAdventurer(&G, n);
     }
 

@@ -21,43 +21,23 @@ testBuyCard: testDrawCard.c dominion.o rngs.o
 testAll: dominion.o testSuite.c
 	gcc -o testSuite testSuite.c -g  dominion.o rngs.o $(CFLAGS)
 
-test.out: unittest1.c unittest2.c unittest3.c unittest4.c dominion.o rngs.o
-	# Unit test 1
-	gcc -o unittest1 -g unittest1.c dominion.o rngs.o $(CFLAGS)
-	echo "Unit Test 1: isGameOver" > unittestresults.out
-	./unittest1 >> unittestresults.out
-	gcov dominion.c >> unittestresults.out
-	# Unit test 2, not sure why -e shows up in output here
-	gcc -o unittest2 -g unittest2.c dominion.o rngs.o $(CFLAGS)
-	echo "Unit Test 2: buyCard" >> unittestresults.out
-	./unittest2 >> unittestresults.out
-	gcov dominion.c >> unittestresults.out
-	# Unit test 3
-	gcc -o unittest3 -g unittest3.c dominion.o rngs.o $(CFLAGS)
-	echo "Unit Test 3: whoseTurn" >> unittestresults.out
-	./unittest3 >> unittestresults.out
-	gcov dominion.c >> unittestresults.out
-	# Unit test 4
-	gcc -o unittest4 -g unittest4.c dominion.o rngs.o $(CFLAGS)
-	echo "Unit Test 4: isGameOver" >> unittestresults.out
-	./unittest4 >> unittestresults.out
-	gcov dominion.c >> unittestresults.out
-	# Card test 1
-	gcc -o cardtest1 -g cardtest1.c dominion.o rngs.o $(CFLAGS)
-	echo "Card Test 1: Smithy" >> unittestresults.out
-	./cardtest1 >> unittestresults.out
-	gcov dominion.c >> unittestresults.out
-	# Card test 2
-	gcc -o cardtest1 -g cardtest1.c dominion.o rngs.o $(CFLAGS)
-	echo "Card Test 1: Village" >> unittestresults.out 
-	./cardtest1 >> unittestresults.out
-	gcov dominion.c >> unittestresults.out
-	# Card test 3
-	gcc -o cardtest1 -g cardtest1.c dominion.o rngs.o $(CFLAGS)
-	echo "Card Test 1: Great Hall" >> unittestresults.out 
-	./cardtest1 >> unittestresults.out
-	gcov dominion.c >> unittestresults.out
-	# Didn't write an Adventurer test :c
+# This command will generate all random test.out files
+test.out: randomtestcard1.c randomtestcard2.c dominion.o rngs.o
+	## Random test 1
+	gcc -o randomtestcard1 -g randomtestcard1.c dominion.o rngs.o $(CFLAGS)
+	echo "Card Test 1: Smithy" > randomtestcard1.out
+	./randomtestcard1 >> randomtestcard1.out
+	gcov -f -b dominion.c >> randomtestcard1.out
+	## Random test 2, not sure why -e shows up in output here
+	gcc -o randomtestcard2 -g randomtestcard2.c dominion.o rngs.o $(CFLAGS)
+	echo "Card Test 2: Village" > randomtestcard2.out
+	./randomtestcard2 >> randomtestcard2.out
+	gcov -f -b dominion.c >> randomtestcard2.out
+	# Random test 3, not sure why -e shows up in output here
+	gcc -o randomtestadventurer -g randomtestadventurer.c dominion.o rngs.o $(CFLAGS)
+	echo "Card Test 3: Adventurer" > randomtestcardadventurer.out
+	./randomtestadventurer >> randomtestcardadventurer.out
+	gcov -f -b dominion.c >> randomtestcardadventurer.out
 
 interface.o: interface.h interface.c
 	gcc -c interface.c -g  $(CFLAGS)
