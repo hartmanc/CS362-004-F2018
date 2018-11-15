@@ -35,9 +35,9 @@ test.out: randomtestcard1.c randomtestcard2.c dominion.o rngs.o
 	gcov -f -b dominion.c >> randomtestcard2.out
 	# Random test 3, not sure why -e shows up in output here
 	gcc -o randomtestadventurer -g randomtestadventurer.c dominion.o rngs.o $(CFLAGS)
-	echo "Card Test 3: Adventurer" > randomtestcardadventurer.out
-	./randomtestadventurer >> randomtestcardadventurer.out
-	gcov -f -b dominion.c >> randomtestcardadventurer.out
+	echo "Card Test 3: Adventurer" > randomtestadventurer.out
+	./randomtestadventurer >> randomtestadventurer.out
+	gcov -f -b dominion.c >> randomtestadventurer.out
 
 interface.o: interface.h interface.c
 	gcc -c interface.c -g  $(CFLAGS)
@@ -54,4 +54,4 @@ player: player.c interface.o
 all: playdom player 
 
 clean:
-	rm -f *.o playdom.exe playdom player player.exe  *.gcov *.gcda *.gcno *.so *.out testDrawCard testDrawCard.exe
+	rm -f *.o playdom.exe playdom player player.exe  *.gcov *.gcda *.gcno *.so *.out testDrawCard testDrawCard.exe randomtestcard1 randomtestcard2 randomtestadventurer
