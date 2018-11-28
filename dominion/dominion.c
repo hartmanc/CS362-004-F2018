@@ -678,7 +678,7 @@ int smithyEffect(int const currentPlayer, struct gameState* state, int const han
 {
     //+3 Cards
     int i;
-    for (i = 0; i <= 3; i++) { // DEBUG << should be '<'
+    for (i = 0; i <= 3; i++) { // DEBUG << should be '<' --> will add 4 cards
 	  drawCard(currentPlayer, state);
 	}
 			
